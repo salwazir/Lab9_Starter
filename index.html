@@ -7,6 +7,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
 
+  <!--
+    STEP 5 - TrackJS 3rd-party error monitoring.
+    Sign up for a free trial at https://trackjs.com/ , copy your install
+    snippet, and paste it here (replace YOUR_TOKEN_HERE with your token).
+    Leave it commented out until you have a real token, otherwise the agent
+    just logs "Invalid token" noise to the console.
+
+    <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+    <script>
+      window.TrackJS && TrackJS.install({
+        token: "YOUR_TOKEN_HERE",
+        application: "lab9-error-handling"
+      });
+    </script>
+  -->
+
   <style>
     button {
       margin: 3px;
@@ -64,6 +80,13 @@
         <input name="second-num" id="second-num" />
         <button id="calculate">Calculate</button>
         <br />
+        <!--
+          STEP 3 - Try/Catch demo:
+          Comment out the <output> element below (wrap it in an HTML comment)
+          and press Calculate. document.querySelector('output') will return
+          null, writing to output.value throws a TypeError, and our try/catch
+          block catches it instead of letting the page silently break.
+        -->
         <output></output>
       </fieldset>
     </form>
@@ -88,20 +111,192 @@
   </main>
 
   <script>
-    let form = document.querySelector('form');
-    form.addEventListener('submit', e => {
+    /* =========================================================================
+       STEP 4 - Custom Errors (extending the built-in Error object)
+       ========================================================================= */
+
+    // Base class for anything that goes wrong in the calculator.
+    class CalculatorError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CalculatorError';
+      }
+    }
+
+    // A more specific error type, so callers can tell *why* it failed.
+    class DivideByZeroError extends CalculatorError {
+      constructor(message = 'Cannot divide by zero.') {
+        super(message);
+        this.name = 'DivideByZeroError';
+      }
+    }
+
+    /* =========================================================================
+       STEP 3 - try / catch / finally + throw  (the calculator)
+       ========================================================================= */
+
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        const firstNum = document.querySelector('#first-num').value;
+        const secondNum = document.querySelector('#second-num').value;
+        const operator = document.querySelector('#operator').value;
+
+        // Validate the inputs and THROW our own errors when they are bad.
+        if (firstNum.trim() === '' || secondNum.trim() === '') {
+          throw new CalculatorError('Both number fields must be filled in.');
+        }
+
+        const a = Number(firstNum);
+        const b = Number(secondNum);
+        if (Number.isNaN(a) || Number.isNaN(b)) {
+          throw new CalculatorError(`"${firstNum}" or "${secondNum}" is not a valid number.`);
+        }
+
+        if (operator === '/' && b === 0) {
+          throw new DivideByZeroError();
+        }
+
+        const result = eval(`${a} ${operator} ${b}`);
+
+        // If the <output> node has been commented out (see Step 3 note in the
+        // HTML), this line throws a TypeError, which the catch block handles.
+        const output = document.querySelector('output');
+        output.innerHTML = result;
+      } catch (err) {
+        // Report the error to the console and, if possible, into the UI.
+        console.error(err);
+        const output = document.querySelector('output');
+        if (output) {
+          output.innerHTML = `${err.name}: ${err.message}`;
+        }
+      } finally {
+        // finally ALWAYS runs, whether or not an error was thrown.
+        console.log('Calculation attempt finished (finally block ran).');
+      }
     });
 
-    let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+    /* =========================================================================
+       STEP 2 - Wire each button to its matching console method
+       ========================================================================= */
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    const errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+
+    // Some sample data to demonstrate the different console methods.
+    const sampleObject = {
+      course: 'CSE 110',
+      lab: 9,
+      topic: 'Error Handling & Monitoring',
+      tools: ['console', 'try/catch', 'custom errors', 'TrackJS']
+    };
+
+    const sampleTable = [
+      { name: 'Alice', score: 95, passed: true },
+      { name: 'Bob', score: 62, passed: true },
+      { name: 'Carol', score: 41, passed: false }
+    ];
+
+    // Map every button (by its visible label) to a handler.
+    const handlers = {
+      'Console Log': () => {
+        console.log('console.log — plain message + data:', sampleObject);
+      },
+      'Console Error': () => {
+        console.error('console.error — something went wrong!', new Error('Demo error'));
+      },
+      'Console Count': () => {
+        // Each press increments a counter under the same label.
+        console.count('Console Count button pressed');
+      },
+      'Console Warn': () => {
+        console.warn('console.warn — this is a warning, not a hard failure.');
+      },
+      'Console Assert': () => {
+        // The assertion is false, so console.assert prints an assertion failure.
+        console.assert(1 === 2, 'console.assert — 1 does not equal 2!');
+      },
+      'Console Clear': () => {
+        console.clear();
+      },
+      'Console Dir': () => {
+        // console.dir shows an interactive list of an object's properties.
+        console.dir(sampleObject);
+      },
+      'Console dirxml': () => {
+        // console.dirxml shows the DOM/XML tree of an element.
+        console.dirxml(document.querySelector('main'));
+      },
+      'Console Group Start': () => {
+        console.group('Grouped messages');
+        console.log('This line is inside the group.');
+        console.log('So is this one — press "Console Group End" to close it.');
+      },
+      'Console Group End': () => {
+        console.log('This line is the last one in the group.');
+        console.groupEnd();
+      },
+      'Console Table': () => {
+        // console.table renders an array of objects as a nice table.
+        console.table(sampleTable);
+      },
+      'Start Timer': () => {
+        // console.time starts a named timer.
+        console.time('demo-timer');
+        console.log('Timer "demo-timer" started — press "End Timer" to stop it.');
+      },
+      'End Timer': () => {
+        // console.timeEnd stops the timer and logs how long it ran.
+        console.timeEnd('demo-timer');
+      },
+      'Console Trace': () => {
+        // console.trace prints the current call stack.
+        (function outer() {
+          (function inner() {
+            console.trace('console.trace — here is the call stack');
+          })();
+        })();
+      }
+    };
+
+    errorBtns.forEach((btn) => {
+      const label = btn.textContent.trim();
+      if (handlers[label]) {
+        btn.addEventListener('click', handlers[label]);
+      }
+    });
+
+    /* =========================================================================
+       STEP 5 - Global error handler + 3rd-party tracking
+       ========================================================================= */
+
+    // window.onerror catches errors that escape any try/catch and reach the
+    // global scope. This is also where a service like TrackJS hooks in.
+    window.onerror = (message, source, lineno, colno, error) => {
+      console.error('[window.onerror] Caught a global error:', message);
+      console.error(`    at ${source}:${lineno}:${colno}`, error);
+
+      // In a real app you would forward this to a logging endpoint, e.g.:
+      //   fetch('/log', { method: 'POST', body: JSON.stringify({ message, source, lineno }) });
+      // TrackJS (Step 5 snippet in <head>) does exactly this for you automatically.
+
+      return false; // false = let the browser also log it normally.
+    };
+
+    // The modern equivalent also catches resource/load errors.
+    window.addEventListener('error', (event) => {
+      console.error('[window.addEventListener("error")] Caught:', event.message || event.error);
+    });
+
+    // The "Trigger a Global Error" button intentionally throws OUTSIDE of any
+    // try/catch so that the global handlers above fire.
+    const globalErrorBtn = errorBtns.find((b) => b.textContent.trim() === 'Trigger a Global Error');
+    globalErrorBtn.addEventListener('click', () => {
+      // Calling a function that does not exist throws a ReferenceError that is
+      // never caught locally — so it bubbles up to window.onerror.
+      thisFunctionDoesNotExist();
+    });
   </script>
 </body>
 
