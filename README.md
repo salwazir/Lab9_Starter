@@ -4,9 +4,7 @@ CSE 110 — Spring 2026
 
 ## Live site (GitHub Pages)
 
-<!-- After enabling GitHub Pages (Settings → Pages → Deploy from branch: main / root),
-     paste your published URL below. -->
-https://YOUR_USERNAME.github.io/Lab9_Starter/
+https://salwazir.github.io/Lab9_Starter/
 
 ## What this demonstrates
 
@@ -53,4 +51,6 @@ function on purpose so those handlers fire and log to the console.
 To enable **TrackJS** monitoring, sign up at <https://trackjs.com/>, then
 uncomment the snippet in the `<head>` of `index.html` and paste in your token.
 The TrackJS dashboard screenshot (with username + list of triggered errors) is
-included in this repo.
+included in this repo as `trackjs.png`:
+
+![TrackJS dashboard capturing triggered errors](trackjs.png)
