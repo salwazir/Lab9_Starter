@@ -9,19 +9,17 @@
 
   <!--
     STEP 5 - TrackJS 3rd-party error monitoring.
-    Sign up for a free trial at https://trackjs.com/ , copy your install
-    snippet, and paste it here (replace YOUR_TOKEN_HERE with your token).
-    Leave it commented out until you have a real token, otherwise the agent
-    just logs "Invalid token" noise to the console.
-
-    <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
-    <script>
-      window.TrackJS && TrackJS.install({
-        token: "YOUR_TOKEN_HERE",
-        application: "lab9-error-handling"
-      });
-    </script>
+    This is the live agent snippet from https://trackjs.com/ . Once installed,
+    TrackJS automatically captures errors that reach the global scope (the same
+    ones window.onerror sees) and reports them to the TrackJS dashboard.
   -->
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({
+      token: "84c495079c0949c280f3587649110505",
+      application: "lab9-error-handling"
+    });
+  </script>
 
   <style>
     button {
